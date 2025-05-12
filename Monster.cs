@@ -1,38 +1,7 @@
 using UnityEngine;
 
 public class Monster : MonoBehaviour
-{
-    // 에셋스토어에서 임포트한 텍스처를 할당하기 위한 변수
-    public Texture monsterTexture;
-
-    private void Start()
-    {
-        // 텍스처 적용: 만약 다른 초기화 작업이 있다면 같이 진행해도 됩니다.
-        ApplyTexture();
-
-        // 만약 상태 초기화나 다른 로직이 필요하다면 여기서 진행
-    }
-
-    /// <summary>
-    /// MeshRenderer를 사용해 monsterTexture를 머티리얼에 적용하는 메서드
-    /// </summary>
-    private void ApplyTexture()
-    {
-        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
-
-        if (meshRenderer != null && monsterTexture != null)
-        {
-            // Standard 셰이더를 사용하는 머티리얼 생성
-            Material monsterMaterial = new Material(Shader.Find("Standard"));
-            monsterMaterial.mainTexture = monsterTexture;
-            meshRenderer.material = monsterMaterial;
-        }
-        else
-        {
-            Debug.LogWarning("MeshRenderer 또는 monsterTexture가 할당되지 않았습니다.");
-        }
-    }
-    
+{    
     // 플레이어의 Transform을 저장 (MonsterManager에서 할당)
     public Transform player;
 
@@ -50,18 +19,16 @@ public class Monster : MonoBehaviour
 
     private MonsterState currentState = MonsterState.Inactive;
 
-    /// <summary>
+
     /// 몬스터를 활성화하여 배회 상태로 전환한다.
-    /// </summary>
     public void ActivateMonster()
     {
         currentState = MonsterState.Wandering;
         // 배회 초기화나 애니메이션 시작 로직 추가 가능
     }
 
-    /// <summary>
+
     /// 몬스터를 플레이어 추격 상태로 전환한다.
-    /// </summary>
     public void EnableChase()
     {
         currentState = MonsterState.Chasing;
@@ -85,18 +52,16 @@ public class Monster : MonoBehaviour
         }
     }
 
-    /// <summary>
+
     /// 배회 행동 로직 (여기서는 단순히 전진하는 예시)
-    /// </summary>
     private void Wander()
     {
-        // TODO: 배회 로직 개선 (랜덤 이동, 일정 구역 내 이동 등)
+        //배회 로직 개선 (랜덤 이동, 일정 구역 내 이동 등)
         transform.Translate(Vector3.forward * wanderSpeed * Time.deltaTime);
     }
 
-    /// <summary>
+
     /// 플레이어를 향해 추격하는 로직
-    /// </summary>
     private void Chase()
     {
         if (player != null)
