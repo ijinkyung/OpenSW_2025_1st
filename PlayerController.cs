@@ -9,6 +9,9 @@ public class PlayerController : MonoBehaviour
     private CharacterController characterController;
     private float verticalVelocity;
     private bool isGrounded;
+ 
+    private PlayerActions playerActions;
+    private GameObject nearObject;
 
     private void Start()
     {
@@ -85,6 +88,17 @@ public class PlayerController : MonoBehaviour
         {
             float mouseX = Input.GetAxis("Mouse X") * rotationSpeed;
             transform.Rotate(Vector3.up, mouseX);
+        }
+    }
+
+    private void OnTrigerStay(Collider other)
+    {
+        if(other.tag == "Item"){
+            nearObject = other.gameObject;
+        }
+
+        if(other.tag == "Door"){
+            nearObject = other.gameObject;
         }
     }
 
