@@ -78,17 +78,16 @@ public class PlayerController : MonoBehaviour
             playerActions.OpenDoor(); // E키: 문 열기
         }
 
-        if(Input.GetKeyDown(KeyCode.Tab))
-        {
-            playerActions.OpenInventory(); // Tab: 인벤토리창 열기
-        }
-
         if(Input.GetMouseButton(0))
         {
             playerActions.UseItem(); // 왼쪽 마우스 버튼: 아이템 사용
         }
-    }
 
+        // if(Input.GetKeyDown(KeyCode.Tab))
+        // {
+        //     playerActions.OpenInventory(); // Tab: 인벤토리창 열기
+        // }
+    }
 
     private void HandleRotation()
     {
