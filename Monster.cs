@@ -8,6 +8,7 @@ public class Monster : MonoBehaviour
     private Animator animator;
     private MeshRenderer meshRenderer;
     private NavMeshAgent agent;
+    private Camera mainCamera;
 
     private MonsterState currentState = MonsterState.Inactive; // 현재상태를 비활성상태로 지정
 
@@ -15,13 +16,13 @@ public class Monster : MonoBehaviour
     public Transform player;
 
     // 이동속도 설정
-    float wanderSpeed = 2.0f;       // 배회할 때 이동속도
-    float chaseSpeed = 5.0f;        // 추격할 때 이동속도
+    float wanderSpeed = 1.0f;       // 배회할 때 이동속도
+    float chaseSpeed = 3.0f;        // 추격할 때 이동속도
     float rotationSpeed = 5.0f;     // 회전 속도
-    float stoppingDistance = 1.5f;  // 정지 거리
-    bool canAttack = true;
+    float chaseDistance = 10f;      // 추격 시작 거리
     float attackRange = 1.5f;       // 공격 거리
     float attackCooldown = 2f;      // 공격 간격
+    bool canAttack = true;
 
     // 몬스터 동작 상태
     enum MonsterState
@@ -34,12 +35,7 @@ public class Monster : MonoBehaviour
 
     void Start()
     {
-        NavMeshHit hit;
-        if (NavMesh.SamplePosition(transform.position, out hit, 10f, NavMesh.AllAreas))
-        {
-            agent.Warp(hit.position); // NavMesh 위로 위치 변경
-        }
-
+        CleanupMemory();
         // 만약 상태 초기화나 다른 로직이 필요하다면 여기서 진행
         agent.isStopped = false; // 초반에는 이동을 멈춘 상태로 설정
         agent.speed = wanderSpeed;
@@ -50,10 +46,12 @@ public class Monster : MonoBehaviour
     {
         meshRenderer = GetComponent<MeshRenderer>();
         agent = GetComponent<NavMeshAgent>(); // NavMeshAgent 가져오기
+        animator = GetComponent<Animator>();
+        mainCamera = Camera.main; // 메인 카메라 가져오기
     }
 
     /// 몬스터를 활성화하여 배회 상태로 전환한다.
-    void ActivateMonster()
+    public void ActivateMonster()
     {
         currentState = MonsterState.Wandering;
         agent.isStopped = false;
@@ -67,7 +65,7 @@ public class Monster : MonoBehaviour
     }
 
     /// 몬스터를 플레이어 추격 상태로 전환한다.
-    void EnableChase()
+    public void EnableChase()
     {
         currentState = MonsterState.Chasing;
         agent.speed = chaseSpeed;
@@ -77,27 +75,34 @@ public class Monster : MonoBehaviour
             StopCoroutine(wanderCoroutine);
             wanderCoroutine = null;
         }
-        // 추격 관련 코드
     }
 
     void Update()
     {
-        // 현재 상태에 따라 행동을 실행
-        switch (currentState)
+        if (player == null || mainCamera == null) return;
+        // 몬스터가 카메라 시야 안에 있는지 확인
+        Vector3 viewportPos = mainCamera.WorldToViewportPoint(transform.position);
+        bool isVisible = viewportPos.x > 0 && viewportPos.x < 1 && viewportPos.y > 0 && viewportPos.y < 1 && viewportPos.z > 0;
+        // 플레이어와의 거리 확인
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        // 시야 안에 있고, 추격 거리 내에 있을 경우
+        if (currentState != MonsterState.Chasing && distanceToPlayer < chaseDistance)
         {
-            case MonsterState.Wandering:
-                if (wanderCoroutine == null) // 이미 실행 중이면 중복 실행 방지
-                {
-                    wanderCoroutine = StartCoroutine(WanderRoutine());
-                }
-                break;
+            EnableChase();
+        }
+        if (currentState == MonsterState.Chasing)
+        {
+            Chase();
+        }
+        if (currentState == MonsterState.Chasing && distanceToPlayer < attackRange && canAttack)
+        {
+            currentState = MonsterState.Attacking;
+            Attack();
+        }
 
-            case MonsterState.Chasing:
-                Chase();
-                break;
-            case MonsterState.Attacking:
-                Attack();
-                break;
+        if (Time.time % 300 == 0) // 5분마다 실행
+        {
+            CleanupMemory();
         }
     }
 
@@ -132,10 +137,10 @@ public class Monster : MonoBehaviour
             {
                 agent.SetDestination(hit.position);
             }
-        
+
             // 이동 시간과 도착 후 대기 시간을 설정합니다.
-            yield return new WaitForSeconds(Random.Range(2f, 4f)); // 이동 중 대기
-            yield return new WaitForSeconds(Random.Range(0.5f, 1f)); // 이동 후 대기
+            // yield return new WaitForSeconds(Random.Range(2f, 4f)); // 이동 중 대기
+            yield return new WaitForSeconds(Random.Range(0f, 0.5f)); // 이동 후 대기
         }
     }
 
@@ -146,9 +151,12 @@ public class Monster : MonoBehaviour
         {
             float distance = Vector3.Distance(transform.position, player.position);
 
-            if (distance > stoppingDistance) //거리가 정지거리보다 멀면 추격 실행
+            if (distance > attackRange) //거리가 정지거리보다 멀면 추격 실행
             {
+                agent.isStopped = false;
                 agent.SetDestination(player.position);
+                Debug.Log("몬스터가 플레이어 추격");
+
                 Vector3 direction = (player.position - transform.position).normalized;
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
@@ -157,7 +165,7 @@ public class Monster : MonoBehaviour
             {
                 Debug.Log("플레이어에게 도착! 공격 시작!");
                 currentState = MonsterState.Attacking;
-
+                agent.isStopped = true;
             }
         }
     }
@@ -172,7 +180,7 @@ public class Monster : MonoBehaviour
             {
                 Debug.Log("플레이어를 공격");
                 // 애니메이션 실행
-                // GetComponent<Animator>().SetTrigger("Attack");
+                animator.SetTrigger("AttackTrigger");
 
                 // 플레이어에게 데미지 적용
                 // player.GetComponent<PlayerHealth>().TakeDamge(10);
@@ -193,5 +201,12 @@ public class Monster : MonoBehaviour
     {
         yield return new WaitForSeconds(attackCooldown);
         canAttack = true;
+    }
+
+    void CleanupMemory()
+    {
+        Resources.UnloadUnusedAssets();
+        System.GC.Collect();
+        Debug.Log("불필요한 메모리 정리 완료");
     }
 }
