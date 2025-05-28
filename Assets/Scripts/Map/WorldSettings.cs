@@ -26,21 +26,21 @@ public class WorldSettings : MonoBehaviour
         if (materialManager != null)
         {
             // Apply materials to the world
-            materialManager.ApplySkybox();
+            materialManager.ApplySkybox("Player_Material1");
             
             // Apply materials to ground and walls
             GameObject ground = GameObject.Find("Ground");
-            if (ground != null) materialManager.ApplyGroundMaterial(ground);
+            if (ground != null) materialManager.ApplyGroundMaterial(ground,  "Player_Material1");
 
             GameObject[] walls = GameObject.FindGameObjectsWithTag("Wall");
             foreach (GameObject wall in walls)
             {
-                materialManager.ApplyWallMaterial(wall);
+                materialManager.ApplyWallMaterial(wall,  "Player_Material1");
             }
 
             // Apply materials to player
             GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null) materialManager.ApplyPlayerMaterials(player);
+            if (player != null) materialManager.ApplyPlayerMaterials(player,  "Player_Material1");
         }
     }
 
