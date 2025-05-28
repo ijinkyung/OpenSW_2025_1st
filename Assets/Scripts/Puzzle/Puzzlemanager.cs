@@ -4,7 +4,7 @@ public class PuzzleManager : MonoBehaviour
 {
     public static PuzzleManager Instance;
 
-    private int fuseCount = 0;
+    public int fuseCount = 0;
     public int requiredFuseCount = 3;
 
     public GameObject generator;     // 발전기 GameObject (애니메이션 or 파티클)
@@ -29,7 +29,7 @@ public class PuzzleManager : MonoBehaviour
         }
     }
 
-    private void ActivateGenerator()
+    public void ActivateGenerator()
     {
         Debug.Log("모든 퓨즈가 설치되었습니다! 발전기 작동.");
         if (generator != null)

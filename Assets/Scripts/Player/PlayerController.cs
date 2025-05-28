@@ -10,16 +10,14 @@ public class PlayerController : MonoBehaviour
     private CharacterController characterController; // 물리 충돌 및 이동 처리용
     private float verticalVelocity; // y축 중력값 저장용
     private bool isGrounded; // 바닥에 있는지 여부
- 
-    private PlayerActions playerActions; // 아이템, 문 등 행동 처리 클래스
-    private GameObject nearObject; // 가까이 있는 오브젝트 저장
+    private GameObject currentFuse; // Fuse object
+
     private float xRotation = 0f; // 카메라 상하 회전 각도
 
 
     private void Start()
     {
         characterController = GetComponent<CharacterController>();
-        playerActions = GetComponent<PlayerActions>();
 
         // 마우스 잠금 및 커서 숨기기 (중앙에 고정)
         Cursor.lockState = CursorLockMode.Locked;
@@ -67,28 +65,20 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInput()
     {
-        // 입력 로그
-        if(Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.F))
         {
-            playerActions.PickUpItem(); // F키: 아이템 줍기
-        }
-
-        if(Input.GetKeyDown(KeyCode.E))
-        {
-            playerActions.OpenDoor(); // E키: 문 열기
-        }
-
-        // if(Input.GetKeyDown(KeyCode.Tab))
-        // {
-        //     playerActions.OpenInventory(); // Tab: 인벤토리창 열기
-        // }
-
-        if(Input.GetMouseButton(0))
-        {
-            playerActions.UseItem(); // 왼쪽 마우스 버튼: 아이템 사용
+            if (currentFuse != null)
+            {
+                FuseItem fuseItem = currentFuse.GetComponent<FuseItem>();
+                if (fuseItem != null)
+                {
+                    PuzzleManager.Instance.CollectFuse(fuseItem); 
+                    currentFuse.SetActive(false);
+                    currentFuse = null;
+                }
+            }
         }
     }
-
 
     private void HandleRotation()
     {
@@ -104,17 +94,19 @@ public class PlayerController : MonoBehaviour
         cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
 
-    private void OnTriggerStay(Collider other)
-    {
-        if(other.tag == "Item"){
-            nearObject = other.gameObject;
-        }
-
-        if (other.tag == "Door")
+    private void OnTriggerEnter(Collider other)
         {
-            nearObject = other.gameObject;
-            playerActions.nearObject = nearObject;
+            if (other.CompareTag("Fuse"))
+            {
+                currentFuse = other.gameObject;
+            }   
         }
-    }
 
+        private void OnTriggerExit(Collider other)
+        {
+            if (other.gameObject == currentFuse)
+            {
+                currentFuse = null;
+            }
+        }
 }
