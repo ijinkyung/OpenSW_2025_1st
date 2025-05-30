@@ -17,10 +17,10 @@ public class Monster : MonoBehaviour
 
     // 이동속도 설정
     float wanderSpeed = 1.0f;       // 배회할 때 이동속도
-    float chaseSpeed = 3.0f;        // 추격할 때 이동속도
+    float chaseSpeed = 2.0f;        // 추격할 때 이동속도
     float rotationSpeed = 5.0f;     // 회전 속도
-    float chaseDistance = 10f;      // 추격 시작 거리
-    float attackRange = 1.5f;       // 공격 거리
+    float chaseDistance = 5f;      // 추격 시작 거리
+    float attackRange = 2f;       // 공격 거리
     float attackCooldown = 2f;      // 공격 간격
     bool canAttack = true;
 
@@ -37,6 +37,7 @@ public class Monster : MonoBehaviour
     {
         CleanupMemory();
         // 만약 상태 초기화나 다른 로직이 필요하다면 여기서 진행
+        agent.SetDestination(transform.position);
         agent.isStopped = false; // 초반에는 이동을 멈춘 상태로 설정
         agent.speed = wanderSpeed;
         ActivateMonster();
@@ -86,8 +87,9 @@ public class Monster : MonoBehaviour
         // 플레이어와의 거리 확인
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         // 시야 안에 있고, 추격 거리 내에 있을 경우
-        if (currentState != MonsterState.Chasing && distanceToPlayer < chaseDistance)
+        if (currentState != MonsterState.Chasing && isVisible && distanceToPlayer < chaseDistance)
         {
+            Debug.Log("추격시작");
             EnableChase();
         }
         if (currentState == MonsterState.Chasing)
@@ -164,7 +166,6 @@ public class Monster : MonoBehaviour
             else
             {
                 Debug.Log("플레이어에게 도착! 공격 시작!");
-                currentState = MonsterState.Attacking;
                 agent.isStopped = true;
             }
         }
@@ -209,4 +210,24 @@ public class Monster : MonoBehaviour
         System.GC.Collect();
         Debug.Log("불필요한 메모리 정리 완료");
     }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            // 충돌 면의 첫번째 접촉 정보를 사용해 반사 방향 계산
+            Vector3 reflectDir = Vector3.Reflect(transform.forward, collision.contacts[0].normal);
+            // 새로운 목적지: 반사 방향으로 일정 거리(0~1 단위) 이동한 위치
+            Vector3 newDestination = transform.position + reflectDir.normalized * Random.Range(3f, 5f);
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(newDestination, out hit, 5f, NavMesh.AllAreas))
+            {
+                agent.SetDestination(hit.position);
+            }
+            // 즉시 회전으로 새 방향 적용 (부드럽게 하고 싶다면 Slerp 사용 가능)
+            transform.rotation = Quaternion.LookRotation(reflectDir);
+            Debug.Log("벽 충돌: 방향 전환");
+        }
+    }
+
 }
