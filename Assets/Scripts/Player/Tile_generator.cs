@@ -1,8 +1,7 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
-public class Tile{
+ 
+public class Tile{ 
     public  GameObject the_tile;
     public float creation_time;
 
@@ -25,7 +24,6 @@ public class Tile_generator : MonoBehaviour
     public GameObject parent_object;
     Hashtable tiles = new Hashtable();
 
-    // Start is called before the first frame update
     void Start()
     {
         player_last_transform_x = player_transform.position.x;
@@ -34,7 +32,8 @@ public class Tile_generator : MonoBehaviour
                 for(int j = -number_of_tile_z; j < number_of_tile_z;j++){
                     int picked_tile = Random.Range(0, tile_prefabs.Length);
                     
-                    Vector3 pos = new Vector3((i*tile_size+frnd(player_transform.position.x)),0.0f,(j*tile_size+frnd(player_transform.position.z)));
+                    Vector3 pos = new Vector3((i*tile_size+frnd(player_transform.position.x)),
+                    0.0f,(j*tile_size+frnd(player_transform.position.z)));
                     
                     GameObject t = (GameObject) Instantiate(tile_prefabs[picked_tile]);
                     t.transform.position = pos;
@@ -50,23 +49,21 @@ public class Tile_generator : MonoBehaviour
             }
     }
 
+    // 몬스터와 병합시 에러로 인해 우선 주석처리
+
     // Update is called once per frame
-    void Update()
-    {
-        
-       int x_move = (int)(player_transform.position.x - player_last_transform_x);
-       int z_move = (int)(player_transform.position.z - player_last_transform_z);
-       
-       if(Mathf.Abs(x_move)>=tile_size || Mathf.Abs(z_move)>=tile_size){
-            player_last_transform_x = player_transform.position.x;
-            player_last_transform_z = player_transform.position.z;
-            generate_tiles();
+    // void Update()
+    // {
 
-       }
-      
+    //    int x_move = (int)(player_transform.position.x - player_last_transform_x);
+    //    int z_move = (int)(player_transform.position.z - player_last_transform_z);
 
-
-    }
+    //    if(Mathf.Abs(x_move)>=tile_size || Mathf.Abs(z_move)>=tile_size){
+    //         player_last_transform_x = player_transform.position.x;
+    //         player_last_transform_z = player_transform.position.z;
+    //         generate_tiles();
+    //    }
+    // }
 
     void generate_tiles(){
             for(int i = -number_of_tile_x; i < number_of_tile_x;i++){
@@ -74,9 +71,6 @@ public class Tile_generator : MonoBehaviour
                     int picked_tile = Random.Range(0, tile_prefabs.Length);
                     Vector3 pos = new Vector3(i*tile_size+frnd(player_transform.position.x),0.0f,j*tile_size+frnd(player_transform.position.z)); 
                     string tile_name = "Tile_"+((int)(pos.x)).ToString() + "_" +((int)(pos.z)).ToString();
-
-                    //TODO MAZAT MAPU
-                    //TODO chozeni sikmo dela blbosti kvuli zaokrouhlovani, je mozne vyjit z mapy, pri 10 a vic tiles to ale musi hrac ujit velky vzdalenosti
 
                     if(!tiles.ContainsKey(tile_name)){      
                         GameObject t = (GameObject) Instantiate(tile_prefabs[picked_tile]);
