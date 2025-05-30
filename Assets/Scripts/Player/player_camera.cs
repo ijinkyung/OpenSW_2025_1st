@@ -1,11 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class player_camera : MonoBehaviour
 {
-
-    //cursor lock, pozdeji odemykat na inventar?
     private void Start()
     {
         Cursor.visible = false;
@@ -13,7 +9,7 @@ public class player_camera : MonoBehaviour
             
     }
 
-    public float m_sensitivity = 0.5f; //todo nastaveni globalne
+    public float m_sensitivity = 0.5f; 
     private float m_mouse_x;
     private float m_mouse_y;
     private void LateUpdate()
