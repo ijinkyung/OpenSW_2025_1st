@@ -5,12 +5,11 @@ public class MonsterManager : MonoBehaviour
 {
     // 몬스터 프리팹과 스폰 지점을 에디터에서 할당
     public GameObject monsterPrefab;
-    public Transform spawnPoint;
+    public Transform[] spawnPoints; // 여러개의 스폰포인트를 배열로 저장장
     public GameObject monsterInstance;
 
     // 게임 시작 후 몬스터 생성 및 행동 시작 시간 (초 단위)
-    private float spawnDelay = 10f; // 4분 후 몬스터 생성
-    // private float chaseDelay = 420f; // 7분 후 플레이어 추격 시작
+    private float spawnDelay = 10f; // spawnDelay시간 지난난 후 몬스터 생성
 
     private void Start()
     {
@@ -27,21 +26,22 @@ public class MonsterManager : MonoBehaviour
 
     private IEnumerator InitializeMonster()
     {
-        // 4분 대기 후 몬스터 생성
+        // spawnDelay 대기 후 몬스터 생성
         yield return new WaitForSeconds(spawnDelay);
+        Transform randomSpawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
         if (monsterInstance != null)
         {
-            // 기존 몬스터를 spawnpoint 위치로 이동 후 활성화화
-            monsterInstance.transform.position = spawnPoint.position;
-            monsterInstance.transform.rotation = spawnPoint.rotation;
+            // 기존 몬스터를 랜덤한 spawnpoint 위치로 이동 후 활성화화
+            monsterInstance.transform.position = randomSpawnPoint.position;
+            monsterInstance.transform.rotation = randomSpawnPoint.rotation;
             monsterInstance.SetActive(true);
             Debug.Log("기존 몬스터 활성화");
         }
         else
         {
             // 새로운 몬스터 생성
-            monsterInstance = Instantiate(monsterPrefab, spawnPoint.position, spawnPoint.rotation);
+            monsterInstance = Instantiate(monsterPrefab, randomSpawnPoint.position, randomSpawnPoint.rotation);
         }   
 
         // Monster 스크립트를 가져오고, 플레이어 Transform 할당
